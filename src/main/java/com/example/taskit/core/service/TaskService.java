@@ -2,9 +2,11 @@ package com.example.taskit.core.service;
 
 import com.example.taskit.core.api.prioritygenerator.PriorityGeneration;
 import com.example.taskit.core.api.mailsender.MailSender;
+import com.example.taskit.core.model.Notification;
 import com.example.taskit.core.model.Project;
 import com.example.taskit.core.model.Task;
 import com.example.taskit.core.model.User;
+import com.example.taskit.core.repository.NotificationRepository;
 import com.example.taskit.core.repository.TaskRepository;
 import com.example.taskit.core.repository.UserRepository;
 import com.example.taskit.core.repository.ProjectRepository;
@@ -12,8 +14,7 @@ import com.example.taskit.rest.dto.TaskDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -28,16 +29,24 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final PriorityGeneration priorityGeneration;
     private final MailSender mailSender;
+    private final NotificationRepository notificationRepository;
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ProjectRepository projectRepository, PriorityGeneration priorityGeneration, MailSender mailSender) {
+    public TaskService(
+            TaskRepository taskRepository,
+            UserRepository userRepository,
+            ProjectRepository projectRepository,
+            PriorityGeneration priorityGeneration,
+            MailSender mailSender,
+            NotificationRepository notificationRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.priorityGeneration = priorityGeneration;
         this.mailSender = mailSender;
+        this.notificationRepository = notificationRepository;
     }
 
     public List<Task> getAllTasks() {
@@ -73,6 +82,13 @@ public class TaskService {
             Optional<Project> project = projectRepository.findById(task.getProject());
             project.ifPresent(newTask::setProject);
 
+            String isoTimestamp = Instant.now().toString();
+            Notification notification = new Notification();
+            notification.setRecipient(user.get());
+            notification.setTimestamp(isoTimestamp);
+            notification.setMessage("You have been assigned a task: " + task.getTitle());
+            notificationRepository.save(notification);
+
             this.mailSender.sendNotificationEmail(user.get(), newTask);
 
             return taskRepository.save(newTask);
@@ -96,6 +112,14 @@ public class TaskService {
             project.ifPresent(updatedTask::setProject);
 
             this.mailSender.sendNotificationEmail(user.get(), updatedTask);
+
+            String isoTimestamp = Instant.now().toString();
+            Notification notification = new Notification();
+            notification.setRecipient(user.get());
+            notification.setTimestamp(isoTimestamp);
+            notification.setMessage("Your task has been updated: " + task.getTitle());
+            notificationRepository.save(notification);
+
 
             return taskRepository.save(updatedTask);
         }

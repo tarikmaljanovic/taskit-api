@@ -7,7 +7,6 @@ import com.example.taskit.rest.dto.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.RequestEntity;
 
 import java.util.Optional;
 import java.util.List;
