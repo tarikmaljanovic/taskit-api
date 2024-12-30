@@ -1,7 +1,6 @@
 package com.example.taskit.api.impl.openai;
 
 import com.example.taskit.core.api.prioritygenerator.PriorityGeneration;
-import com.example.taskit.core.model.Task;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.service.OpenAiService;
 

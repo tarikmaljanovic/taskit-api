@@ -1,13 +1,16 @@
 package com.example.taskit.core.service;
 
+import com.example.taskit.core.model.Notification;
 import com.example.taskit.core.model.Project;
 import com.example.taskit.core.model.User;
+import com.example.taskit.core.repository.NotificationRepository;
 import com.example.taskit.core.repository.ProjectRepository;
 import com.example.taskit.core.repository.UserRepository;
 import com.example.taskit.rest.dto.ProjectDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,11 +20,15 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
     @Autowired
-    public ProjectService(ProjectRepository projectRepository, UserRepository userRepository) {
+    public ProjectService(ProjectRepository projectRepository,
+                          UserRepository userRepository,
+                          NotificationRepository notificationRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public Optional<Project> findProjectById(Long id) {
@@ -52,6 +59,15 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId).get();
         User member = userRepository.findById(memberId).get();
         project.getMembers().add(member);
+
+        String isoTimestamp = Instant.now().toString();
+        Notification notification = new Notification();
+        notification.setRecipient(member);
+        notification.setTimestamp(isoTimestamp);
+        notification.setMessage("You have been added to this project: " + project.getName());
+        notificationRepository.save(notification);
+
+
         return projectRepository.save(project).getMembers();
     }
 
