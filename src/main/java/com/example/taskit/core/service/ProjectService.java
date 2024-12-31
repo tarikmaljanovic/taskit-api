@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -91,12 +92,12 @@ public class ProjectService {
         updatedProject.setCreatedBy(creator);
 
         if(project.getMembers() != null) {
-            Set<User> members = null;
-            for(Long memberId : project.getMembers()){
-                assert members != null;
-                members.add(userRepository.findById(memberId).get());
+            Set<User> currentMembers = updatedProject.getMembers() != null ? updatedProject.getMembers() : new HashSet<>();
+            for (Long memberId : project.getMembers()) {
+                Optional<User> member = userRepository.findById(memberId);
+                member.ifPresent(currentMembers::add);  // Add the new member
             }
-            updatedProject.setMembers(members);
+            updatedProject.setMembers(currentMembers);
         }
 
         return projectRepository.save(updatedProject);
