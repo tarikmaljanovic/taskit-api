@@ -40,7 +40,7 @@ public class NotificationService {
         newNotification.setTimestamp(notification.getTimestamp());
 
         Optional<User> recipient = userRepository.getUserById(notification.getRecipient());
-        newNotification.setRecipient(recipient.get());
+        recipient.ifPresent(newNotification::setRecipient);
 
         return notificationRepository.save(newNotification);
     }
