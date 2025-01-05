@@ -3,7 +3,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 FROM openjdk:21-jdk-slim
-COPY --from=build /target/taskit-0.0.1-SNAPSHOT.jar ai-todo.jar
+COPY --from=build /target/taskit-0.0.1-SNAPSHOT.jar taskit.jar
 EXPOSE 8080
 
 ENTRYPOINT ["java","-jar","taskit.jar"]
