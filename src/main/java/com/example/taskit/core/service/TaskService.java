@@ -17,9 +17,11 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -148,6 +150,52 @@ public class TaskService {
 
     public String generatePriority(String description) {
         return priorityGeneration.generatePriority(description);
+    }
+
+    private int getPriorityOrder(String priority) {
+        switch (priority.toUpperCase()) {
+            case "HIGH":
+                return 1;
+            case "MEDIUM":
+                return 2;
+            case "LOW":
+                return 3;
+            default:
+                return Integer.MAX_VALUE; // If priority is invalid, push it to the end
+        }
+    }
+
+    private int getStatusOrder(String status) {
+        switch (status.toUpperCase()) {
+            case "TO DO":
+                return 1;
+            case "IN PROGRESS":
+                return 2;
+            case "COMPLETED":
+                return 3;
+            default:
+                return Integer.MAX_VALUE; // If status is invalid, push it to the end
+        }
+    }
+
+
+    public List<Task> filterProjectTasks(Long projectId, String filter) {
+        List<Task> tasks = taskRepository.findByProjectId(projectId);
+
+        switch (filter.toLowerCase()) {
+            case "priority":
+                return tasks.stream()
+                        .sorted(Comparator.comparingInt(task -> getPriorityOrder(task.getPriority())))
+                        .collect(Collectors.toList());
+
+            case "status":
+                return tasks.stream()
+                        .sorted(Comparator.comparingInt(task -> getStatusOrder(task.getStatus())))
+                        .collect(Collectors.toList());
+
+            default:
+                return tasks;
+        }
     }
 
     public void deleteTaskById(Long id) {

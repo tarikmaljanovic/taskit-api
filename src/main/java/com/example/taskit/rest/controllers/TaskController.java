@@ -69,4 +69,9 @@ public class TaskController {
         taskService.deleteTaskById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @RequestMapping(method = RequestMethod.GET, path = "/filter/{projectId}/{filter}")
+    public ResponseEntity<List<Task>> filterTasks(@PathVariable Long projectId, @PathVariable String filter) {
+        return ResponseEntity.ok(taskService.filterProjectTasks(projectId, filter));
+    }
 }
